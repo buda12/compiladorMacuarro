@@ -1,1 +1,6 @@
 C:\Users\David\Source\Repos\compiladorMacuarro\Compilador\bin\Debug\Compilador.exe.config
+C:\Users\David\Source\Repos\compiladorMacuarro\Compilador\bin\Debug\Compilador.exe
+C:\Users\David\Source\Repos\compiladorMacuarro\Compilador\bin\Debug\Compilador.pdb
+C:\Users\David\Source\Repos\compiladorMacuarro\Compilador\obj\Debug\Compilador.csprojResolveAssemblyReference.cache
+C:\Users\David\Source\Repos\compiladorMacuarro\Compilador\obj\Debug\Compilador.exe
+C:\Users\David\Source\Repos\compiladorMacuarro\Compilador\obj\Debug\Compilador.pdb

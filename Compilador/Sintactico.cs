@@ -12,6 +12,7 @@ namespace Compilador
         LinkedList<token> tokens;
         LinkedList<string> errores = new LinkedList<string>();
         List<string> variables = new List<string>();
+        List<string> tipoVariable = new List<string>();
         public Sintactico(Lexico lexico)
         {
             lex = lexico;
@@ -33,8 +34,88 @@ namespace Compilador
                 case "identifier":
                     validarVariableExiste(tok.lexema, pos);
                     break;
+                case "comparison":
+                    validarComparacion(pos);
+                    break;
+                case "operator":
+                    if (tok.lexema == "=") { validarComparacion(pos); }
+                    break;
             }
         }
+
+        public int getPosicion(string tipo, int pos, int orden)
+        {
+            while (tokens.ElementAt(pos).tipo != tipo)
+            {
+                pos += orden;
+            }
+            return pos;
+        }
+
+        public void validarComparacion(int pos)
+        {
+            int posicion = pos;
+            string error = "Linea: " + tokens.ElementAt(pos).linea + " Posicion: " + tokens.ElementAt(pos).index + Environment.NewLine + "Error: comparasion invalida. Los argumentos son de diferente tipo de dato";
+
+            if (tokens.ElementAt(pos - 1).tipo == "corchete")
+            {
+                posicion = getPosicion("corchete", pos-2, -1);
+            }
+
+            if (tokens.ElementAt(posicion - 1).tipo == "identifier")
+            {
+                int index = variables.IndexOf(tokens.ElementAt(posicion - 1).lexema);
+                if (tokens.ElementAt(pos + 1).tipo == "identifier")
+                {
+                    int index2 = variables.IndexOf(tokens.ElementAt(pos + 1).lexema);
+                    if (tipoVariable[index] != tipoVariable[index2])
+                    {
+                        errores.AddLast(error);
+                    }
+                }
+                else
+                {
+                    if (!compararConstanteOString(tipoVariable[index], pos, 1)) { errores.AddLast(error); }
+                }
+            }
+
+            if(tokens.ElementAt(pos - 1).tipo == "constant"|| tokens.ElementAt(pos - 1).tipo == "string")
+            {
+                if (tokens.ElementAt(pos + 1).tipo == "identifier")
+                {
+                    int index = variables.IndexOf(tokens.ElementAt(pos + 1).lexema);
+                    if (!compararConstanteOString(tipoVariable[index], pos, -1)) { errores.AddLast(error); }
+                }
+                else
+                {
+                    if (tokens.ElementAt(pos - 1).tipo != tokens.ElementAt(pos + 1).tipo) { errores.AddLast(error); }
+                }
+            }
+        }
+
+        public bool compararConstanteOString(string tipoDato, int pos, int orden)
+        {
+            switch (tipoDato)
+            {
+                case "entero":
+                case "real":
+                    if (tokens.ElementAt(pos + orden).tipo == "constant")
+                    {
+                        return true;
+                    }
+                    return false;
+                case "palabra":
+                case "caracter":
+                    if (tokens.ElementAt(pos + orden).tipo == "string")
+                    {
+                        return true;
+                    }
+                    return false;
+                default:
+                    return false;
+            }
+        }
+
         public void validarVariableExiste(string var, int pos)
         {
             if (!variables.Contains(var))
@@ -75,6 +156,7 @@ namespace Compilador
                 {
                     if (tipo[i] == "identifier")
                     {
+                        tipoVariable.Add(tokens.ElementAt(pos).lexema);
                         variables.Add(contenido[i]);
                     }
                 }
