@@ -179,6 +179,8 @@ namespace Compilador
             int parentesis = 0;
             bool empiezaParentesisA = false;
             bool hayParentesis = false;
+            string ultimaLlaveApertura = string.Empty;
+            int ultimaLlaveIndex = -1;
 
             for (int i = 0; i < tokens.Count; i++)
             {
@@ -189,10 +191,27 @@ namespace Compilador
                         empiezaParentesisA = true;
                     hayParentesis = true;
                 }
+                if (getLastLlaveApertura(tokens.ElementAt(i).lexema) != "nel")
+                {
+                    ultimaLlaveApertura = getLastLlaveApertura(tokens.ElementAt(i).lexema);
+                    ultimaLlaveIndex = i;
+                }
                 if (tokens.ElementAt(i).lexema == "}")
                 {
                     parentesis--;
                     hayParentesis = true;
+                    while (getLastLlaveApertura(tokens.ElementAt(ultimaLlaveIndex).lexema) == "nel" || ultimaLlaveIndex > 0)
+                    {
+                        ultimaLlaveApertura = getLastLlaveApertura(tokens.ElementAt(ultimaLlaveIndex).lexema);
+                        ultimaLlaveIndex--;
+                    }
+                }
+                if (ultimaLlaveApertura == "llave")
+                {
+                    if (tokens.ElementAt(i).lexema == ")" || tokens.ElementAt(i).lexema == "]")
+                    {
+                        errores.AddLast("Linea: " + tokens.ElementAt(i).linea + " Posicion: " + tokens.ElementAt(i).index + Environment.NewLine + " Error: orden equivocado de los caracteres de agrupacion [], {}, () ");
+                    }
                 }
             }
             if (parentesis < -1)
@@ -214,6 +233,8 @@ namespace Compilador
             int parentesis = 0;
             bool empiezaParentesisA = false;
             bool hayParentesis = false;
+            string ultimaLlaveApertura = string.Empty;
+            int ultimaLlaveIndex = -1;
 
             for (int i = 0; i < tokens.Count; i++)
             {
@@ -224,10 +245,27 @@ namespace Compilador
                         empiezaParentesisA = true;
                     hayParentesis = true;
                 }
+                if (getLastLlaveApertura(tokens.ElementAt(i).lexema) != "nel")
+                {
+                    ultimaLlaveApertura = getLastLlaveApertura(tokens.ElementAt(i).lexema);
+                    ultimaLlaveIndex = i;
+                }
                 if (tokens.ElementAt(i).lexema == "]")
                 {
                     parentesis--;
                     hayParentesis = true;
+                    while (getLastLlaveApertura(tokens.ElementAt(ultimaLlaveIndex).lexema) == "nel" || ultimaLlaveIndex > 0)
+                    {
+                        ultimaLlaveApertura = getLastLlaveApertura(tokens.ElementAt(ultimaLlaveIndex).lexema);
+                        ultimaLlaveIndex--;
+                    }
+                }
+                if (ultimaLlaveApertura == "corchete")
+                {
+                    if (tokens.ElementAt(i).lexema == ")" || tokens.ElementAt(i).lexema == "}")
+                    {
+                        errores.AddLast("Linea: " + tokens.ElementAt(i).linea + " Posicion: " + tokens.ElementAt(i).index + Environment.NewLine + " Error: orden equivocado de los caracteres de agrupacion [], {}, () ");
+                    }
                 }
             }
             if (parentesis < -1)
@@ -249,6 +287,8 @@ namespace Compilador
             int parentesis = 0;
             bool empiezaParentesisA = false;
             bool hayParentesis = false;
+            string ultimaLlaveApertura = string.Empty;
+            int ultimaLlaveIndex = -1;
 
             for (int i = 0; i < tokens.Count; i++)
             {
@@ -259,10 +299,28 @@ namespace Compilador
                         empiezaParentesisA = true;
                     hayParentesis = true;
                 }
+                if (getLastLlaveApertura(tokens.ElementAt(i).lexema) != "nel")
+                {
+                    ultimaLlaveApertura = getLastLlaveApertura(tokens.ElementAt(i).lexema);
+                    ultimaLlaveIndex = i - 1;
+                }
                 if (tokens.ElementAt(i).lexema == ")")
                 {
                     parentesis--;
                     hayParentesis = true;
+                    while (getLastLlaveApertura(tokens.ElementAt(ultimaLlaveIndex).lexema) == "nel" || ultimaLlaveIndex > 0)
+                    {
+                        ultimaLlaveApertura = getLastLlaveApertura(tokens.ElementAt(ultimaLlaveIndex).lexema);
+                        ultimaLlaveIndex--;
+                    }
+
+                }
+                if (ultimaLlaveApertura == "parentesis")
+                {
+                    if (tokens.ElementAt(i).lexema == "]" || tokens.ElementAt(i).lexema == "}")
+                    {
+                        errores.AddLast("Linea: " + tokens.ElementAt(i).linea + " Posicion: " + tokens.ElementAt(i).index + Environment.NewLine + " Error: orden equivocado de los caracteres de agrupacion [], {}, () ");
+                    }
                 }
                 if (tokens.ElementAt(i).tipo == "metodo" && tokens.ElementAt(i + 1).tipo != "corchete" && tokens.ElementAt(i).lexema != "sino")
                 {
@@ -281,6 +339,26 @@ namespace Compilador
             {
                 errores.AddLast(" Error: debe comenzar con un parentesis de apertura (");
             }
+        }
+
+        public string getLastLlaveApertura(string caracter)
+        {
+            string llave = "nel";
+
+            switch (caracter)
+            {
+                case "[":
+                    llave = "corchete";
+                    break;
+                case "{":
+                    llave = "llave";
+                    break;
+                case "(":
+                    llave = "parentesis";
+                    break;
+            }
+
+            return llave;
         }
 
         public void imprimir()
