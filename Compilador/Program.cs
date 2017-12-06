@@ -22,7 +22,7 @@ namespace Compilador
     }//class Program
 
     struct token
-    {//tipos son identifier, keyword, operator, special, constant,punctuation, comparison,
+    {//tipos son identifier, keyword, operator, special, constant,punctuation, comparison, yeah
         public string tipo;
         public string lexema;
         public int linea;
