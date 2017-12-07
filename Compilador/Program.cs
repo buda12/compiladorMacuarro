@@ -203,8 +203,8 @@ namespace Compilador
                                         else
                                         {
                                             double m = 0;
-                                            if (double.TryParse(wrd, out m))
-                                            {
+                                            if (double.TryParse(wrd, out m) && wrd.ElementAt(0)>47 && wrd.ElementAt(0)<58)
+                                            {//faby: checking first element is truly a number
                                                 x = new token("constant", wrd, linea, index);
                                             }//if
                                             else

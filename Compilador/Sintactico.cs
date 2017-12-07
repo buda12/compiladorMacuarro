@@ -13,6 +13,11 @@ namespace Compilador
         LinkedList<string> errores = new LinkedList<string>();
         List<string> variables = new List<string>();
         List<string> tipoVariable = new List<string>();
+        List<string> codigo = new List<string>();//faby
+        List<string> tags = new List<string>();
+        //int methodToken1 = -1;
+        int methodConditionIndex = -1;
+        string condCMPJMP = string.Empty;
         public Sintactico(Lexico lexico)
         {
             lex = lexico;
@@ -40,6 +45,11 @@ namespace Compilador
                 case "operator":
                     if (tok.lexema == "=") { validarComparacion(pos); }
                     break;
+                case "metodo":
+                    {
+                        genMetodo(pos);
+                        break;
+                    }
             }
         }
 
@@ -71,7 +81,12 @@ namespace Compilador
                     if (tipoVariable[index] != tipoVariable[index2])
                     {
                         errores.AddLast(error);
-                    }
+                    }//if
+                    else
+                    {
+                        genCondicion(tokens.ElementAt(posicion-1), tokens.ElementAt(posicion+1));
+                        methodConditionIndex = posicion;//indice de token de condicion del metodo
+                    }//ffaaby
                 }
                 else
                 {
@@ -376,5 +391,175 @@ namespace Compilador
                 Console.WriteLine(errores.ElementAt(i));
             }//for(int i=0; i<tokens.Count; i++)
         }//print
-    }
-}
+
+        public void genMetodo(int pos)
+        {
+            switch(tokens.ElementAt(pos).lexema)
+            {
+                case "para":
+                    { break; }
+                case "si":
+                    { break; }
+                case "mientras":
+                    {
+                        string tag1 = genTag("#mientras");
+                        string tag2 = genTag("#mientras");
+                        //methodToken1 = pos;
+                        if(pos+1 < tokens.Count() && tokens.ElementAt(pos+1).lexema=="(")
+                        {
+                        for (pos=pos+1; pos < tokens.Count && tokens.ElementAt(pos).lexema!=")"; pos++)//o hasta parenthesis?
+                        {
+                            getTipo(tokens.ElementAt(pos), pos);
+                        }//for
+                            string actualCondition = string.Empty;
+                            actualCondition+=genCodAddJmpType((tokens.ElementAt(methodConditionIndex)).lexema) + tag1;
+                            codigo.Add(actualCondition);
+                            condCMPJMP += actualCondition;
+                            codigo.Add(genCodAddJmpType("incondicional") + tag2);
+                            codigo.Add(tag1);
+
+                        if (tokens.ElementAt(pos+1).lexema=="{")
+                        {
+
+                        }//if
+                        else
+                        {
+                                //asume que el ultimo elemento fue un parenthesis cerrado
+                            int prevPos = pos;
+                            for (pos = pos + 1; pos < tokens.Count && tokens.ElementAt(pos).linea == tokens.ElementAt(pos).linea+1; pos++)//o hasta parenthesis?
+                            {
+                               getTipo(tokens.ElementAt(pos), pos);
+                            }//
+                        }//sin corchete
+                            
+                            codigo.Add(tag2);
+                        }//if open parenthesis
+                        
+                        getTipo(tokens.ElementAt(pos),pos);
+                        break;
+                    }//mientras
+            }//switch
+        }//validar
+
+        public string genCodAddJmpType(String tok)
+        {//esComparison
+            switch (tok)
+            {
+                case ">":
+                    {
+                        return "JGT ";
+                    }
+                case "<":
+                    {
+                        return "JLT ";
+                    }
+                case ">=":
+                    {
+                        return "JGE ";
+                    }
+                case "<=":
+                    {
+                        return "JLE ";
+                    }
+                case "==":
+                    {
+                        return "JEQ ";
+                    }
+                case "!=":
+                    {
+                        return "JNE ";
+                    }
+                default:
+                    {
+                        return "JMP ";
+                    }
+            }//switch
+        }//getCoddAddJmpType
+
+        public string genTag(string x)
+        {
+            tags.Add(x+tags.Count().ToString());
+            return tags.Last();
+        }//genTag
+        public void genCondicion(token valor1, token valor2)
+        {
+            condCMPJMP = "";
+            genCodDoPushType(valor1);
+            genCodDoPushType(valor2);
+            codigo.Add("CMP");
+            condCMPJMP += "CMP "+"\n";
+        }//genCondicion
+        public void genCodDoPushType(token valor)
+        {
+            if(valor.tipo== "constant")
+            {
+                if( (Convert.ToDouble(valor.lexema) % 1) == 0 && !valor.lexema.Contains("."))
+                {
+                    codigo.Add( "PUSHKI "+valor.lexema);
+                    condCMPJMP += "PUSHKI " + valor.lexema+"\n";
+                }//es int
+                else
+                {
+                    codigo.Add("PUSHKD " + valor.lexema);
+                    condCMPJMP+= "PUSHKD " + valor.lexema+"\n";
+                }//es double
+            }//es valor numerico
+            else
+            {
+                if (valor.tipo == "string")
+                {
+                    if (valor.lexema.ElementAt(0) == 39)
+                    {
+                        codigo.Add( "PUSHKC " + valor.lexema);
+                        condCMPJMP += "PUSHKC " + valor.lexema + "\n";
+                    }//esChar
+                    else
+                    {
+                        codigo.Add( "PUSHKS " + valor.lexema);
+                        condCMPJMP += "PUSHKS " + valor.lexema + "\n";
+                    }
+                }//string o char
+                else
+                {
+                    if(valor.tipo== "identifier")
+                    {
+                        
+                        if(variables.Contains(valor.lexema))
+                        {
+                            int ind = variables.IndexOf(valor.lexema);
+                            switch(tipoVariable.ElementAt(ind))
+                            {
+                                case "entero":
+                                    {
+                                        codigo.Add( "PUSHI " + valor.lexema);
+                                        condCMPJMP += "PUSHI " + valor.lexema + "\n";
+                                        break;
+                                    }
+                                case "palabra":
+                                    {
+                                        codigo.Add("PUSHS " + valor.lexema);
+                                        condCMPJMP += "PUSHS " + valor.lexema + "\n";
+                                        break;
+                                    }
+                                case "real":
+                                    {
+                                        codigo.Add( "PUSHD " + valor.lexema);
+                                        condCMPJMP += "PUSHD " + valor.lexema + "\n";
+                                        break;
+                                    }
+                                case "caracter":
+                                    {
+                                        codigo.Add( "PUSHC " + valor.lexema);
+                                        condCMPJMP += "PUSHC " + valor.lexema + "\n";
+                                        break;
+                                    }
+                            }//ver que tipo de variable es
+                        }
+                    }//if(valor.tipo== "identifier")
+                }//not constant string or char
+            }//else
+           
+
+        }//getCodGetPushType
+    }//class sintatico
+}//namespace compilador
