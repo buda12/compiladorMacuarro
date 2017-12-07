@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Compilador
 {
@@ -17,6 +18,17 @@ namespace Compilador
         {
             lex = lexico;
             tokens = lex.getTokens();
+            Console.WriteLine("Introduzca la direccion del archivo destino: ");
+            String x = Console.ReadLine();
+            //CON ESTA MADRE CREAS EL ARCHIVO
+            FileStream fs = new FileStream(x, FileMode.Create);
+            fs.Close();
+            //CON ESTA MADRE AÑADES UNA LINEA
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(x, true))
+            {
+                file.WriteLine("UN-MEAN-C");
+            }
+            string destino = Path.GetDirectoryName(x);
             validarCochineroLlaves();
             for (int i = 0; i < tokens.Count; i++)
             {
@@ -283,7 +295,7 @@ namespace Compilador
             }
         }
 
-        public void imprimir()
+        public bool imprimir()
         {
             if (errores.Count > 0)
             {
@@ -296,7 +308,13 @@ namespace Compilador
             for (int i = 0; i < errores.Count; i++)
             {
                 Console.WriteLine(errores.ElementAt(i));
-            }//for(int i=0; i<tokens.Count; i++)
+            }
+            if(errores.Count == 0)
+            {
+                return true;
+            }
+            return false;
+            //for(int i=0; i<tokens.Count; i++)
         }//print
     }
 }

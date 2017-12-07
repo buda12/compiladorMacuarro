@@ -12,11 +12,12 @@ namespace Compilador
     {
         static void Main(string[] args)
         {
+            bool hayError=false;
             Console.WriteLine("Introduzca la direccion del archivo: ");
             String x = Console.ReadLine();
             Lexico lex = new Lexico(x);
             Sintactico sin = new Sintactico(lex);
-            sin.imprimir();
+            hayError=sin.imprimir();
             Console.ReadLine();
         }//Main
     }//class Program
