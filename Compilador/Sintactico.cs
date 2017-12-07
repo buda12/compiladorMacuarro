@@ -78,9 +78,9 @@ namespace Compilador
                             }
                             if (!sigueComa)
                             {
-                                esDato(i);
-                                sigueComa = true;
+                                esDato(i, pos);
                             }
+                            sigueComa = !sigueComa;
                             i++;
                         }
                     }
@@ -88,7 +88,7 @@ namespace Compilador
                 case "si":
                 case "mientras":
                     int j = pos + 2;
-                    esDato(j);
+                    esDato(j, pos);
                     j++;
                     j = hayTamañoMatriz(j);
                     if (tokens.ElementAt(j).tipo != "comparison")
@@ -99,7 +99,7 @@ namespace Compilador
                     {
                         validarComparacion(j);
                     }
-                    esDato(j + 1);
+                    esDato(j + 1, pos);
                     break;
                 case "para":
 
@@ -107,11 +107,21 @@ namespace Compilador
             }
         }
 
-        public void esDato(int pos)
+        public void esDato(int pos, int posMetodo)
         {
-            if (tokens.ElementAt(pos).tipo != "identifier" && tokens.ElementAt(pos).tipo != "string" && tokens.ElementAt(pos).tipo != "constant")
+            if (tokens.ElementAt(posMetodo).lexema == "leer")
             {
-                errores.AddLast("Linea: " + tokens.ElementAt(pos).linea + " Posicion: " + tokens.ElementAt(pos).index + Environment.NewLine + "Error: tipo de dato invalido. Debe de ser string, numerico o alguna variable");
+                if (tokens.ElementAt(pos).tipo != "identifier")
+                {
+                    errores.AddLast("Linea: " + tokens.ElementAt(pos).linea + " Posicion: " + tokens.ElementAt(pos).index + Environment.NewLine + "Error: tipo de dato invalido. Los parametros del metodo leer deben de ser variables");
+                }
+            }
+            else
+            {
+                if (tokens.ElementAt(pos).tipo != "identifier" && tokens.ElementAt(pos).tipo != "string" && tokens.ElementAt(pos).tipo != "constant")
+                {
+                    errores.AddLast("Linea: " + tokens.ElementAt(pos).linea + " Posicion: " + tokens.ElementAt(pos).index + Environment.NewLine + "Error: tipo de dato invalido. Debe de ser string, numerico o alguna variable");
+                }
             }
         }
 
