@@ -17,10 +17,19 @@ namespace Compilador
         {
             lex = lexico;
             tokens = lex.getTokens();
+            validarProgramaComienzaLlave();
             validarCochineroLlaves();
             for (int i = 0; i < tokens.Count; i++)
             {
                 getTipo(tokens.ElementAt(i), i);
+            }
+        }
+
+        public void validarProgramaComienzaLlave()
+        {
+            if (tokens.ElementAt(0).lexema != "{")
+            {
+                errores.AddLast("Linea: 1 Posicion: 1 \nError: el programa debe comenzar con {");
             }
         }
 
@@ -34,13 +43,89 @@ namespace Compilador
                 case "identifier":
                     validarVariableExiste(tok.lexema, pos);
                     break;
-                case "comparison":
-                    validarComparacion(pos);
-                    break;
+                //case "comparison":
+                    //validarComparacion(pos);
+                    //break;
                 case "operator":
                     if (tok.lexema == "=") { validarComparacion(pos); }
                     break;
+                case "metodo":
+                    validarMetodo(tok.lexema, pos);
+                    break;
             }
+        }
+
+        public void validarMetodo(string metodo, int pos)
+        {
+            switch (metodo)
+            {
+                case "leer":
+                case "imprimir":
+                case "simprimir":
+                    int i = pos + 2;
+                    bool sigueComa = false;
+                    while (tokens.ElementAt(i).lexema != ")")
+                    {
+                        i = hayTamañoMatriz(i);
+                        if (tokens.ElementAt(i).lexema != ")")
+                        {
+                            if (sigueComa)
+                            {
+                                if (tokens.ElementAt(i).lexema != ",")
+                                {
+                                    errores.AddLast("Linea: " + tokens.ElementAt(i).linea + " Posicion: " + tokens.ElementAt(i).index + Environment.NewLine + "Error: en separacion de parametros. Debe de utilizar ,");
+                                }
+                            }
+                            if (!sigueComa)
+                            {
+                                esDato(i);
+                                sigueComa = true;
+                            }
+                            i++;
+                        }
+                    }
+                    break;
+                case "si":
+                case "mientras":
+                    int j = pos + 2;
+                    esDato(j);
+                    j++;
+                    j = hayTamañoMatriz(j);
+                    if (tokens.ElementAt(j).tipo != "comparison")
+                    {
+                        errores.AddLast("Linea: " + tokens.ElementAt(j).linea + " Posicion: " + tokens.ElementAt(j).index + Environment.NewLine + "Error: tipo de dato invalido. Debe de haber una comparacion");
+                    }
+                    if (tokens.ElementAt(j).tipo == "comparison")
+                    {
+                        validarComparacion(j);
+                    }
+                    esDato(j + 1);
+                    break;
+                case "para":
+
+                    break;
+            }
+        }
+
+        public void esDato(int pos)
+        {
+            if (tokens.ElementAt(pos).tipo != "identifier" && tokens.ElementAt(pos).tipo != "string" && tokens.ElementAt(pos).tipo != "constant")
+            {
+                errores.AddLast("Linea: " + tokens.ElementAt(pos).linea + " Posicion: " + tokens.ElementAt(pos).index + Environment.NewLine + "Error: tipo de dato invalido. Debe de ser string, numerico o alguna variable");
+            }
+        }
+
+        public int hayTamañoMatriz(int pos)
+        {
+            if (tokens.ElementAt(pos).lexema == "[")
+            {
+                while (tokens.ElementAt(pos).lexema != "]")
+                {
+                    pos++;
+                }
+                pos++;
+            }
+            return pos;
         }
 
         public int getPosicion(string tipo, int pos, int orden)
@@ -65,12 +150,16 @@ namespace Compilador
             if (tokens.ElementAt(posicion - 1).tipo == "identifier")
             {
                 int index = variables.IndexOf(tokens.ElementAt(posicion - 1).lexema);
+
                 if (tokens.ElementAt(pos + 1).tipo == "identifier")
                 {
                     int index2 = variables.IndexOf(tokens.ElementAt(pos + 1).lexema);
-                    if (tipoVariable[index] != tipoVariable[index2])
+                    if (index >= 0 && index2 >= 0)
                     {
-                        errores.AddLast(error);
+                        if (tipoVariable[index] != tipoVariable[index2])
+                        {
+                            errores.AddLast(error);
+                        }
                     }
                 }
                 else
@@ -79,18 +168,23 @@ namespace Compilador
                 }
             }
 
-            if(tokens.ElementAt(pos - 1).tipo == "constant"|| tokens.ElementAt(pos - 1).tipo == "string")
-            {
-                if (tokens.ElementAt(pos + 1).tipo == "identifier")
+                if (tokens.ElementAt(pos - 1).tipo == "constant" || tokens.ElementAt(pos - 1).tipo == "string")
                 {
-                    int index = variables.IndexOf(tokens.ElementAt(pos + 1).lexema);
-                    if (!compararConstanteOString(tipoVariable[index], pos, -1)) { errores.AddLast(error); }
-                }
-                else
+                if (tokens.ElementAt(pos).lexema == "=")
                 {
-                    if (tokens.ElementAt(pos - 1).tipo != tokens.ElementAt(pos + 1).tipo) { errores.AddLast(error); }
+                    errores.AddLast("Linea: " + tokens.ElementAt(pos).linea + " Posicion: " + tokens.ElementAt(pos).index + Environment.NewLine + "Error: no se puede asignar valor a una variable.");
                 }
-            }
+
+                    if (tokens.ElementAt(pos + 1).tipo == "identifier")
+                    {
+                        int index = variables.IndexOf(tokens.ElementAt(pos + 1).lexema);
+                        if (!compararConstanteOString(tipoVariable[index], pos, -1)) { errores.AddLast(error); }
+                    }
+                    else
+                    {
+                        if (tokens.ElementAt(pos - 1).tipo != tokens.ElementAt(pos + 1).tipo) { errores.AddLast(error); }
+                    }
+                }
         }
 
         public bool compararConstanteOString(string tipoDato, int pos, int orden)
@@ -143,11 +237,15 @@ namespace Compilador
             }
             if (tokens.ElementAt(pos).lexema == "palabra")
             {
-                ;
-                if (tipo[tipo.IndexOf("identifier") + 1] != "corchete")
+                if (contenido[tipo.IndexOf("identifier") + 1] != "(")
                 {
                     variableDeclaradaCorrectamente = false;
-                    errores.AddLast("Linea: " + tokens.ElementAt(pos + 1).linea + " Posicion: " + (tipo.IndexOf("identifier") + 1) + Environment.NewLine + "Error: al declarar una variable string es necesario definir su tamaño.");
+                    errores.AddLast("Linea: " + tokens.ElementAt(pos + 1).linea + " Posicion: " + (tipo.IndexOf("identifier") + 1) + Environment.NewLine + "Error: al declarar una variable string es necesario definir su tamaño con parentesis.");
+                }
+                if (contenido[tipo.IndexOf("identifier") + 2] != "entero" && tipo[tipo.IndexOf("identifier") + 2] != "constant")
+                {
+                    variableDeclaradaCorrectamente = false;
+                    errores.AddLast("Linea: " + tokens.ElementAt(pos + 2).linea + " Posicion: " + (tipo.IndexOf("identifier") + 2) + Environment.NewLine + "Error: al declarar una variable string es necesario definir su tamaño con un entero.");
                 }
             }
             if (variableDeclaradaCorrectamente)
