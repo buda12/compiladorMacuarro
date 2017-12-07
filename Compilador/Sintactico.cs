@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
 
 namespace Compilador
 {
@@ -19,17 +18,6 @@ namespace Compilador
         {
             lex = lexico;
             tokens = lex.getTokens();
-            Console.WriteLine("Introduzca la direccion del archivo destino: ");
-            String x = Console.ReadLine();
-            //CON ESTA MADRE CREAS EL ARCHIVO
-            FileStream fs = new FileStream(x, FileMode.Create);
-            fs.Close();
-            //CON ESTA MADRE AÑADES UNA LINEA
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(x, true))
-            {
-                file.WriteLine("UM-MEAN-C");
-            }
-            string destino = Path.GetDirectoryName(x);
             validarProgramaComienzaLlave();
             validarCochineroLlaves();
             for (int i = 0; i < tokens.Count; i++)
@@ -120,15 +108,91 @@ namespace Compilador
                     esDato(j + 1, pos);
                     break;
                 case "para":
+                    bool hayError = false;
                     int index = pos + 2;
                     esAsignacion(index);
+                    index += 3;
+                    if (tokens.ElementAt(index).lexema != ";")
+                    {
+                        errores.AddLast("Linea: " + tokens.ElementAt(index).linea + " Posicion: " + tokens.ElementAt(index).index + Environment.NewLine + "Error: los parametros en van separados por ;.");
+                    }
+                    esComparacion(index + 1);
+                    index++;
+                    while (tokens.ElementAt(index).lexema != ";")
+                    {
+                        if (tokens.ElementAt(index).lexema == ")")
+                        {
+                            hayError = true;
+                            errores.AddLast("Linea: " + tokens.ElementAt(index).linea + " Posicion: " + tokens.ElementAt(index).index + Environment.NewLine + "Error: falta separador ; para el tercer parametro de para.");
+                            break;
+                        }
+                        index++;
+                    }
+                    if (!hayError)
+                    {
+                        esAsignacionOIncremento(index + 1);
+                    }
                     break;
+            }
+        }
+
+        public void esComparacion(int pos)
+        {
+            bool esComparacion = false;
+            int index = pos;
+            while (tokens.ElementAt(pos).lexema != ";")
+            {
+                if (tokens.ElementAt(pos).tipo == "comparison")
+                {
+                    esComparacion = true;
+                    index = pos;
+                }
+                pos++;
+            }
+            if (esComparacion)
+            {
+                validarComparacion(index);
+            }
+            else
+            {
+                errores.AddLast("Linea: " + tokens.ElementAt(pos).linea + " Posicion: " + tokens.ElementAt(pos).index + Environment.NewLine + "Error: debe de haber una comparasion.");
+            }
+        }
+
+        public void esAsignacionOIncremento(int pos)
+        {
+            if (tokens.ElementAt(pos).tipo != "identifier")
+            {
+                errores.AddLast("Linea: " + tokens.ElementAt(pos).linea + " Posicion: " + tokens.ElementAt(pos).index + Environment.NewLine + "Error: las asignaciones deben de ser a una variable.");
+            }
+            if (tokens.ElementAt(pos + 1).lexema != "=" && tokens.ElementAt(pos + 1).lexema != "+" && tokens.ElementAt(pos + 1).lexema != "-")
+            {
+                errores.AddLast("Linea: " + tokens.ElementAt(pos + 1).linea + " Posicion: " + tokens.ElementAt(pos + 1).index + Environment.NewLine + "Error: falta el operandor =.");
+            }
+            if (tokens.ElementAt(pos + 1).lexema == "+" || tokens.ElementAt(pos + 1).lexema == "-")
+            {
+                if (tokens.ElementAt(pos + 1).lexema != tokens.ElementAt(pos + 2).lexema)
+                {
+                    errores.AddLast("Linea: " + tokens.ElementAt(pos + 2).linea + " Posicion: " + tokens.ElementAt(pos + 2).index + Environment.NewLine + "Error: al hacer un incremento o decremento.");
+                }
+            }
+            if (tokens.ElementAt(pos + 1).lexema == "=")
+            {
+                validarComparacion(pos + 1); //valida que la variable y su asigancion sean del mismo tipo de dato
             }
         }
 
         public void esAsignacion(int pos)
         {
-            //if()
+            if (tokens.ElementAt(pos).tipo != "identifier")
+            {
+                errores.AddLast("Linea: " + tokens.ElementAt(pos).linea + " Posicion: " + tokens.ElementAt(pos).index + Environment.NewLine + "Error: las asignaciones deben de ser a una variable.");
+            }
+            if (tokens.ElementAt(pos + 1).lexema != "=")
+            {
+                errores.AddLast("Linea: " + tokens.ElementAt(pos).linea + " Posicion: " + tokens.ElementAt(pos).index + Environment.NewLine + "Error: falta el operandor =.");
+            }
+            validarComparacion(pos + 1); //valida que la variable y su asigancion sean del mismo tipo de dato
         }
 
         public void esDato(int pos, int posMetodo)
@@ -207,7 +271,7 @@ namespace Compilador
                 {
                 if (tokens.ElementAt(pos).lexema == "=")
                 {
-                    errores.AddLast("Linea: " + tokens.ElementAt(pos).linea + " Posicion: " + tokens.ElementAt(pos).index + Environment.NewLine + "Error: no se puede asignar valor a una variable.");
+                    errores.AddLast("Linea: " + tokens.ElementAt(pos).linea + " Posicion: " + tokens.ElementAt(pos).index + Environment.NewLine + "Error: no se puede asignar valor de una variable a una constante.");
                 }
 
                     if (tokens.ElementAt(pos + 1).tipo == "identifier")
@@ -494,7 +558,7 @@ namespace Compilador
             return llave;
         }
 
-        public bool imprimir()
+        public void imprimir()
         {
             if (errores.Count > 0)
             {
@@ -508,11 +572,6 @@ namespace Compilador
             {
                 Console.WriteLine(errores.ElementAt(i));
             }//for(int i=0; i<tokens.Count; i++)
-            if (errores.Count == 0)
-            {
-                return true;
-            }
-            return false;
         }//print
     }
 }
