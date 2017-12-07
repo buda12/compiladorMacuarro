@@ -14,6 +14,7 @@ namespace Compilador
         LinkedList<string> errores = new LinkedList<string>();
         List<string> variables = new List<string>();
         List<string> tipoVariable = new List<string>();
+        bool variableEsArreglo = false;
         public Sintactico(Lexico lexico)
         {
             lex = lexico;
@@ -92,6 +93,11 @@ namespace Compilador
                             {
                                 esDato(i, pos);
                             }
+                            if (variableEsArreglo) //haz tu chochinero
+                            {
+
+                            }
+                            variableEsArreglo = false;
                             sigueComa = !sigueComa;
                             i++;
                         }
@@ -114,9 +120,15 @@ namespace Compilador
                     esDato(j + 1, pos);
                     break;
                 case "para":
-
+                    int index = pos + 2;
+                    esAsignacion(index);
                     break;
             }
+        }
+
+        public void esAsignacion(int pos)
+        {
+            //if()
         }
 
         public void esDato(int pos, int posMetodo)
@@ -146,6 +158,7 @@ namespace Compilador
                     pos++;
                 }
                 pos++;
+                variableEsArreglo = true;
             }
             return pos;
         }
