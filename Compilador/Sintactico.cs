@@ -369,7 +369,24 @@ namespace Compilador
             parentesis();
         }
 
+        public string getLastMetodo(int pos)
+        {
+            string metodo = string.Empty;
+            bool esMetodo = false;
 
+            while (!esMetodo)
+            {
+                if(tokens.ElementAt(pos).tipo == "metodo" && tokens.ElementAt(pos).lexema != "imprimir" && tokens.ElementAt(pos).lexema != "simprimir" && tokens.ElementAt(pos).lexema != "leer")
+                {
+                    metodo = tokens.ElementAt(pos).lexema;
+                    esMetodo = true;
+                }
+                pos--;
+                if (pos < 0) { break; }
+            }
+
+            return metodo;
+        }
 
         public void llaves()
         {
@@ -378,6 +395,7 @@ namespace Compilador
             bool hayParentesis = false;
             string ultimaLlaveApertura = string.Empty;
             int ultimaLlaveIndex = -1;
+            List<string> ultimoMetodo = new List<string>();
 
             for (int i = 0; i < tokens.Count; i++)
             {
@@ -387,6 +405,10 @@ namespace Compilador
                     if (!hayParentesis)
                         empiezaParentesisA = true;
                     hayParentesis = true;
+                    if (i > 0)
+                    {
+                        ultimoMetodo.Add(getLastMetodo(i));
+                    }
                 }
                 if (getLastLlaveApertura(tokens.ElementAt(i).lexema) != "nel")
                 {
@@ -402,6 +424,11 @@ namespace Compilador
                         ultimaLlaveApertura = getLastLlaveApertura(tokens.ElementAt(ultimaLlaveIndex).lexema);
                         ultimaLlaveIndex--;
                     }
+                    if (ultimoMetodo.Count > 0)
+                    {
+                        ultimoMetodo.RemoveAt(ultimoMetodo.Count - 1);
+                    }
+                    
                 }
                 if (ultimaLlaveApertura == "llave")
                 {
