@@ -4,3 +4,10 @@ C:\Users\David\Source\Repos\compiladorMacuarro\Compilador\bin\Debug\Compilador.p
 C:\Users\David\Source\Repos\compiladorMacuarro\Compilador\obj\Debug\Compilador.csprojResolveAssemblyReference.cache
 C:\Users\David\Source\Repos\compiladorMacuarro\Compilador\obj\Debug\Compilador.exe
 C:\Users\David\Source\Repos\compiladorMacuarro\Compilador\obj\Debug\Compilador.pdb
+C:\Users\Francisco\source\repos\compiladorMacuarro2\Compilador\bin\Debug\Compilador.exe.config
+C:\Users\Francisco\source\repos\compiladorMacuarro2\Compilador\bin\Debug\Compilador.exe
+C:\Users\Francisco\source\repos\compiladorMacuarro2\Compilador\bin\Debug\Compilador.pdb
+C:\Users\Francisco\source\repos\compiladorMacuarro2\Compilador\obj\Debug\Compilador.csprojResolveAssemblyReference.cache
+C:\Users\Francisco\source\repos\compiladorMacuarro2\Compilador\obj\Debug\Compilador.csproj.CoreCompileInputs.cache
+C:\Users\Francisco\source\repos\compiladorMacuarro2\Compilador\obj\Debug\Compilador.exe
+C:\Users\Francisco\source\repos\compiladorMacuarro2\Compilador\obj\Debug\Compilador.pdb
